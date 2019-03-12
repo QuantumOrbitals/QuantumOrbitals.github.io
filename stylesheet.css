@@ -1,0 +1,237 @@
+body {
+    position: absolute;
+    background-color: black;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+#menu {
+    color: white;
+    font-family: "Verdana"; 
+    position: relative;
+    top: 15%;
+    left: calc((100vw - (50vmin))/2);
+    width: 50vmin;
+    height: 45vmin;
+    opacity: 1;
+    transition: opacity 2s;
+}
+
+#settings {
+    text-align: center;
+    color: white;
+    font-size: 6vmin; 
+}
+
+#headers{
+    position: absolute;
+    top: 33%;
+    width: 30%;
+    height: 72%;
+}
+
+#sliders{
+    position: absolute;
+    top: 30%;
+    right: 0px;
+    height: 72%;
+    width: 60%;
+}
+
+.header {
+    color: RGB(200,200,200);
+    height: 8vmin;
+    font-size: 3vmin;
+}
+
+.duo {
+    position: relative;
+    height: 8vmin;
+    text-align: center;
+}
+
+.qoutput {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%,1.1vmin);
+    font-size: 2.5vmin;
+}
+
+.qnumber {
+    position: absolute;
+    -webkit-appearance: none;
+    transform: translateY(5vmin);
+    height: 0.7vmin;
+    left: 0px;
+    width: 100%;
+    transition: opacity .2s;
+    opacity: 0.7;
+    z-index: 1;
+}
+
+.qnumber:hover {
+    opacity: 1;
+}
+
+.qnumber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2vmin;
+    width: 2vmin;
+    border-radius: 50%; 
+    background: RGB(63,63,63);
+    cursor: pointer;
+}
+
+#Apply {
+    position: relative;
+    text-align: center;
+    font-size: 2.5vmin;
+    top: 100%;
+    left: 40%;
+    width: 20%;
+    transition: opacity .2s;
+    opacity: 0.7;
+    z-index: 1;
+}
+
+#Apply:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+
+#onscreen {
+    color: white;
+    font-family: "Verdana"; 
+    font-size: 2vmin;
+    position: absolute;
+    top: 5vmin;
+    left: 5vmin;
+    width: 30vmin;
+    height: 15vmin;
+    z-index: 1;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1s;
+}
+
+#onscreen:hover {
+    opacity: 1 !important;
+}
+
+#headers2 {
+    width: 15vmin;
+    line-height: 5vmin;
+}
+
+.output2 {
+    position: relative;
+    top: 1.4vmin;
+}
+
+#sliders2 {
+    position: absolute;
+    left: 15vmin;
+    top: 0px;
+    text-align: center;
+    width: 15vmin;
+}
+
+.slider2 {
+    -webkit-appearance: none;
+    position: relative;
+    top: 0.5vmin;
+    height: 0.6vmin;
+    width: 100%;
+    transition: opacity .2s;
+    opacity: 0.7;
+    z-index: 1;
+}
+
+.slider2:hover {
+    opacity: 1;
+}
+
+.slider2::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1vmin;
+    width: 1vmin;
+    border-radius: 50%; 
+    background: RGB(63,63,63);
+    cursor: pointer;
+}
+
+#bruh {
+    
+}
+
+.container {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    height: 2.5vmin;
+    width: 2.5vmin;
+    vertical-align: middle;
+    left: 6.25vmin;
+    top: 2.25vmin;
+}
+
+.container #a_checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2.5vmin;
+    width: 2.5vmin;
+    background-color: #ffffff;
+    opacity: 0.7;
+    transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.container:hover #a_checkbox ~ .checkmark {
+  opacity: 1;
+}
+
+.container #a_checkbox:checked ~ .checkmark {
+  background-color: #7c7c7c;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.container #a_checkbox:checked ~ .checkmark:after {
+  display: block;
+}
+
+.container .checkmark:after {
+  left: 0.75vmin;
+  top: 0px;
+  width: 0.8vmin;
+  height: 1.6vmin;
+  border: solid white;
+  border-width: 0 0.3vmin 0.3vmin 0;
+  transform: rotate(45deg);
+}
+
+#renderer {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transition: opacity 3s;
+    opacity: 0;
+}

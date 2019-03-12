@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Orbitals</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="stylesheet.css"/>
+    <script src="three.min.js"></script>
+    <script src="math.min.js" type="text/javascript"></script>
+    <script src="algebrite.js" type="text/javascript"></script>
+    <script src="OrbitControls.js" type="text/javascript"></script>
+    <script type="module" src="koffie.js"></script>
+    <script type="x-shader/x-vertex" id="vertexshader">
+
+        attribute float size;
+        attribute float alpha;
+        attribute float n_alpha;
+        attribute float brightness;
+        attribute float max;
+        float limit = 0.0000005;
+        varying float vLimit;
+        varying float vAlpha;
+        varying float v_n_Alpha;
+        varying float vPhase;
+
+        void main() {
+            vAlpha = alpha/max + brightness;
+            vPhase = alpha;
+            v_n_Alpha = n_alpha*(1.0 - alpha/limit);
+            vLimit = limit;
+            vec4 mvPosition = modelViewMatrix * vec4( position, 1 );
+            gl_PointSize = size;
+            gl_Position = projectionMatrix * mvPosition;
+        }
+
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragmentshader">
+
+        uniform vec3 color;
+        uniform vec3 color2;
+        varying float vAlpha;
+        varying float v_n_Alpha;
+        varying float vPhase;
+        varying float vLimit;
+        
+        void main() {
+            vec3 colour = vPhase > vLimit? color : color2;
+            float alpha = vPhase > vLimit? vAlpha : v_n_Alpha;
+            gl_FragColor = vec4( colour, alpha );
+        }
+
+    </script>
+</head>
+<body>
+
+    <div id = "menu">
+        <div class = "title" id = "settings">Orbitals</div>
+        <div id="controls">
+            <div id="headers">
+                <div class = "header" id = "n">
+                    n:
+                </div> 
+                <div class = "header" id = "l">
+                    l:
+                </div>
+                <div class = "header" id = "m">
+                    m:
+                </div>
+            </div>
+            <div id="sliders">
+                <div class="duo">
+                    <span class="qoutput" id="o_n">3</span>
+                    <input type="range" min="1" max="8" value="3" class="qnumber" id="n_slider"><br/>
+                </div>
+                <div class="duo">
+                    <span class="qoutput" id="o_l">2</span>
+                    <input type="range" min="0" max="7" value="2" class="qnumber" id="l_slider"><br/>
+                </div>
+                <div class="duo">
+                    <span class="qoutput" id="o_m">0</span>
+                    <input type="range" min="0" max="7" value="0" class="qnumber" id="m_slider">
+                </div>
+            </div>
+        </div>
+        <div onclick="applySettings(event)" id="Apply">Apply</div>
+    </div>
+    <div id="onscreen">
+        <div id="controls">
+            <div id="headers2">
+                <div class = "header2" id = "particles">
+                    Particles:
+                </div>
+                <div class = "header2" id = "scale">
+                    Scale:
+                </div>
+                <div class = "header2" id = "brightness">
+                    Brightness:
+                </div>
+                <div class = "header2" id = "Nodes">
+                    Nodes:
+                </div>
+                <div class = "header2" id="Axes">
+                    Axes:
+                </div>
+            </div>
+            <div id="sliders2">
+                <div class="duo2">
+                    <span class="output2" id="o_particles">10000</span>
+                    <input type="range" min="10000" max="200000" step="10000" value="10000" class="slider2" id="p_slider"><br/>
+                </div>
+                <div class="duo2">
+                    <span class="output2" id="o_scale">30</span>
+                    <input type="range" min="0" max="100" value="30" step="10" class="slider2" id="s_slider"><br/>
+                </div>
+                <div class="duo2">
+                    <span class="output2" id="o_brightness">0</span>
+                    <input type="range" min="-1" max="1" value="0" step="0.01" class="slider2" id="b_slider"><br/>
+                </div>
+                <div class="duo2">
+                    <span class="output2" id="o_nodes">0</span>
+                    <input type="range" min="0" max="1" value="0" step="0.01" class="slider2" id="nodes_slider"><br/>
+                </div>
+                <div class="duo2" id="bruh">
+                    <label class="container" id="yareyare">
+                        <input type="checkbox" id="a_checkbox" checked="checked">
+                        <span class="checkmark"></span>
+                    </label><br/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id = "renderer"></div>
+
+</body>
+</html>
