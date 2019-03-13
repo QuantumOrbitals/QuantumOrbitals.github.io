@@ -334,7 +334,7 @@ function calcWaveFunction(n, l, m)
     a = a.split("y").join("(y)");
     a = a.split("pi").join(Math.PI);
         
-    b = b.replace(/exp/g, "Math.E^");
+    /*b = b.replace(/exp/g, "Math.E^");
     b = b.replace(/abs/g, "Math.abs");
     b = b.replace(/sin/g, "Math.sin");
     b = b.split("arg(r)").join("((r < 0)? " + Math.PI + " : 0)");
@@ -343,13 +343,13 @@ function calcWaveFunction(n, l, m)
     b = b.split("r").join("(r)");
     b = b.split("x").join("(x)");
     b = b.split("y").join("(y)");
-    b = b.split("pi").join(Math.PI);
+    b = b.split("pi").join(Math.PI);*/
     
     a = circumflexToPow(a);
-    b = circumflexToPow(b);
+    //b = circumflexToPow(b);
     
     a = "(" + a + ")";
-    b = "(" + b + ")";
+    //b = "(" + b + ")";
     
     test = test.replace(/exp/g, "Math.E^");
     test = test.replace(/abs/g, "Math.abs");
@@ -365,8 +365,8 @@ function calcWaveFunction(n, l, m)
     
     test = circumflexToPow(test);
     
-    //PDF = test;
-    PDF = a;
+    PDF = test;
+    //PDF = a;
     console.log(PDF);
     PDF = PDF.replace(/Math.e/g, "Math.E");
 }
