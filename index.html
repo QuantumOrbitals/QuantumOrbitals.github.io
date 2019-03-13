@@ -14,6 +14,7 @@
 
         attribute float size;
         attribute float alpha;
+        attribute float contrast;
         attribute float n_alpha;
         attribute float brightness;
         attribute float max;
@@ -24,9 +25,9 @@
         varying float vPhase;
 
         void main() {
-            vAlpha = alpha/max + brightness;
+            vAlpha = (alpha/max)*contrast-(contrast-1.0)/2.0 + brightness;
             vPhase = alpha;
-            v_n_Alpha = n_alpha*(1.0 - alpha/limit);
+            v_n_Alpha = 1.0-((length(position)/0.5)*contrast-(contrast-1.0)/2.0)+n_alpha;
             vLimit = limit;
             vec4 mvPosition = modelViewMatrix * vec4( position, 1 );
             gl_PointSize = size;
@@ -94,6 +95,9 @@
                 <div class = "header2" id = "scale">
                     Scale:
                 </div>
+                <div class = "header2" id = "contrast">
+                    Contrast:
+                </div>
                 <div class = "header2" id = "brightness">
                     Brightness:
                 </div>
@@ -114,12 +118,16 @@
                     <input type="range" min="0" max="100" value="30" step="10" class="slider2" id="s_slider"><br/>
                 </div>
                 <div class="duo2">
+                    <span class="output2" id="o_contrast">1</span>
+                    <input type="range" min="1" max="10" value="1" step="0.01" class="slider2" id="c_slider"><br/>
+                </div>
+                <div class="duo2">
                     <span class="output2" id="o_brightness">0</span>
                     <input type="range" min="-1" max="1" value="0" step="0.01" class="slider2" id="b_slider"><br/>
                 </div>
                 <div class="duo2">
                     <span class="output2" id="o_nodes">0</span>
-                    <input type="range" min="0" max="1" value="0" step="0.01" class="slider2" id="nodes_slider"><br/>
+                    <input type="range" min="-1" max="1" value="0" step="0.01" class="slider2" id="nodes_slider"><br/>
                 </div>
                 <div class="duo2" id="bruh">
                     <label class="container" id="yareyare">

@@ -20,7 +20,7 @@ var scale = 30;
 var brightest = 0.0;
 var brightness = 0;
 var n_alpha = 0;
-//var contrast = 10;
+var contrast = 1;
 //var intensity = "10000";
 var size = 6;
 var colour = 'white';
@@ -31,6 +31,7 @@ var _opacities;
 var intensities;
 var _intensities;
 var sizes;
+var contrast_;
 
 var orbitals;
 var waveFunction;
@@ -79,9 +80,10 @@ function golden_experience()
         document.getElementById("o_particles").innerHTML = document.getElementById("p_slider").value;
     }, false);
     
-    document.getElementById("b_slider").oninput = e => {
-        brightness = document.getElementById("b_slider").value;
-    }
+    document.getElementById("c_slider").addEventListener('input', function() {
+        document.getElementById("o_contrast").innerHTML = document.getElementById("c_slider").value;
+        contrast = document.getElementById("c_slider").value;
+    }, false);
     
     document.getElementById("b_slider").addEventListener('input', function() {
         document.getElementById("o_brightness").innerHTML = document.getElementById("b_slider").value;
@@ -525,12 +527,13 @@ function updateAxes() {
 
 function init() {
     let container = document.getElementById("renderer");
-	camera = new THREE.PerspectiveCamera( 45, container.clientWidth / container.clientHeight, 0.01, 10 );
+	camera = new THREE.PerspectiveCamera( 45, container.clientWidth / container.clientHeight, 0.01, 150 );
     camera.up.set( 0, 0, 1 );
 	camera.position.x = 1.3;
 	camera.position.y = 1.3;
 	camera.position.z = 1.3;
 	scene = new THREE.Scene();
+    scene.background = null;
     
     setAxes();
     
@@ -543,6 +546,9 @@ function init() {
     geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
     geometry.addAttribute('alpha', new THREE.BufferAttribute(opacities,1));
     geometry.addAttribute('max', new THREE.BufferAttribute(intensities,1));
+    
+    contrast_ = new Float32Array(MAX_POINTS).fill(contrast);
+    geometry.addAttribute('contrast', new THREE.BufferAttribute(contrast_,1));
     
     sizes = new Float32Array(MAX_POINTS).fill(size);
     geometry.addAttribute('size', new THREE.BufferAttribute(sizes,1));
@@ -562,7 +568,7 @@ function init() {
         {
             depthWrite: false,
             uniforms: uniforms,
-            blending: THREE.AdditiveBlending,
+            //blending: THREE.AdditiveBlending,
             transparent: true,
             vertexShader:   document.getElementById( 'vertexshader' ).textContent,
             fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
@@ -572,6 +578,7 @@ function init() {
 	scene.add(orbitals);
     
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.sortObjects = false;
     controls = new THREE.OrbitControls( camera, renderer.domElement );
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( container.clientWidth, container.clientHeight );
@@ -597,6 +604,9 @@ function updateAmount(){
     
     let di_molto = new Float32Array(MAX_POINTS).fill(brightness);
     geometry.addAttribute('brightness', new THREE.BufferAttribute(di_molto,1));
+    
+    let renaissance = new Float32Array(MAX_POINTS).fill(contrast);
+    geometry.addAttribute('contrast', new THREE.BufferAttribute(renaissance,1));
     
     let dummy = new Float32Array(MAX_POINTS).fill(0);
     geometry.addAttribute('n_alpha', new THREE.BufferAttribute(dummy,1));
@@ -632,6 +642,7 @@ function updateAmount(){
     
     attributes.position.needsUpdate = true;
     attributes.alpha.needsUpdate = true;
+    attributes.alpha.needsUpdate = true;
     attributes.max.needsUpdate = true;
 }
 
@@ -650,9 +661,12 @@ function updatePoints(){
 function updateAlpha()
 {
     var brightness_ = orbitals.geometry.attributes.brightness.array;
+    var _contrast = orbitals.geometry.attributes.contrast.array;
     var nodes_alpha = orbitals.geometry.attributes.n_alpha.array;
     nodes_alpha.fill(n_alpha);
     brightness_.fill(brightness);
+    _contrast.fill(contrast);
+    orbitals.geometry.attributes.contrast.needsUpdate = true;
     orbitals.geometry.attributes.brightness.needsUpdate = true;
     orbitals.geometry.attributes.n_alpha.needsUpdate = true;
 }

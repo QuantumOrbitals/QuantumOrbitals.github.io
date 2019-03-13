@@ -104,11 +104,11 @@ body {
 #onscreen {
     color: white;
     font-family: "Verdana"; 
-    font-size: 2vmin;
+    font-size: 2vh;
     position: absolute;
     top: 5vmin;
     left: 5vmin;
-    width: 30vmin;
+    width: 40vh;
     height: 15vmin;
     z-index: 1;
     opacity: 0;
@@ -121,8 +121,8 @@ body {
 }
 
 #headers2 {
-    width: 15vmin;
-    line-height: 5vmin;
+    width: 15vh;
+    line-height: 5vh;
 }
 
 .output2 {
@@ -132,10 +132,10 @@ body {
 
 #sliders2 {
     position: absolute;
-    left: 15vmin;
+    left: 15vh;
     top: 0px;
     text-align: center;
-    width: 15vmin;
+    width: 30vh;
 }
 
 .slider2 {
@@ -172,11 +172,11 @@ body {
     position: relative;
     cursor: pointer;
     user-select: none;
-    height: 2.5vmin;
-    width: 2.5vmin;
+    height: 2.5vh;
+    width: 2.5vh;
     vertical-align: middle;
-    left: 6.25vmin;
-    top: 2.25vmin;
+    left: 13.75vh;
+    top: 2.25vh;
 }
 
 .container #a_checkbox {
@@ -191,8 +191,8 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    height: 2.5vmin;
-    width: 2.5vmin;
+    height: inherit;
+    width: inherit;
     background-color: #ffffff;
     opacity: 0.7;
     transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
@@ -217,10 +217,10 @@ body {
 }
 
 .container .checkmark:after {
-  left: 0.75vmin;
+  left: 30%;
   top: 0px;
-  width: 0.8vmin;
-  height: 1.6vmin;
+  width: 30%;
+  height: 60%;
   border: solid white;
   border-width: 0 0.3vmin 0.3vmin 0;
   transform: rotate(45deg);
