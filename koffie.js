@@ -3,7 +3,7 @@ import * as algebrite from '/algebrite.js';
 import * as OrbitControls from '/OrbitControls.js';
 //import * as math from '/math.min.js';
 
-var camera, scene, renderer, controls;
+var container, camera, scene, renderer, controls;
 var geometry, material, mesh;
 
 var n_g = 3;
@@ -25,19 +25,19 @@ var contrast = 1;
 var size = 6;
 var colour = 'white';
 
+var complex = true;
+var phase;
+
 var vertices;
 var opacities;
 var _opacities;
 var intensities;
 var _intensities;
-var sizes;
-var contrast_;
+var colours;
 
 var orbitals;
 var waveFunction;
 var PDF;
-
-var updateOrbitals = false;
 
 function onWindowResize(){
     let container = document.getElementById("renderer");
@@ -46,7 +46,6 @@ function onWindowResize(){
     renderer.setSize( container.clientWidth, container.clientHeight );
 }
 
-var timer = 0;
 function golden_experience()
 {
     let qsliders = document.querySelectorAll(".qnumber");
@@ -64,7 +63,9 @@ function golden_experience()
                 qsliders[1].value = qsliders[0].value - 1;
             if(qsliders[2].value > qsliders[1].value)
                 qsliders[2].value = qsliders[1].value;
-            qvalues[i].innerHTML = qsliders[i].value;
+            qvalues[0].innerHTML = qsliders[0].value;
+            qvalues[1].innerHTML = qsliders[1].value;
+            qvalues[2].innerHTML = qsliders[2].value;
         }
     }
     
@@ -99,6 +100,18 @@ function golden_experience()
         n_alpha = document.getElementById("nodes_slider").value;
     }, false);
     
+    document.getElementById("c_checkbox").addEventListener('change', function() {
+        if(document.getElementById("c_checkbox").checked)
+        {
+            complex = true;
+        }
+        else
+        {
+            complex = false;
+        }
+        updateComplex();
+    }, false);
+    
     document.getElementById("a_checkbox").addEventListener('change', function() {
         if(document.getElementById("a_checkbox").checked)
         {
@@ -126,18 +139,22 @@ function golden_experience()
         l_g = document.getElementById("l_slider").value;
         m_g = document.getElementById("m_slider").value;
         
-        updateOrbitals = true;
-        
-        timer = performance.now();
         document.getElementById("menu").style.opacity = "0";
         document.getElementById("menu").style.visibility = "hidden";
         document.getElementById("onscreen").style.opacity = "0.1";
         document.getElementById("onscreen").style.visibility = "visible";
-        console.log("bazinga");
+        
         init();
+        
         document.getElementById("renderer").style.opacity = "1";
         console.log("...done!");
+        
         animate();
+    }
+    
+    let change = document.getElementById("Change");
+    change.onclick = e => {
+        location = location; //javascript is zo raar
     }
 }
 
@@ -152,9 +169,8 @@ window.onload = function scoopdiwhoop()
 
 var symbols = ['+', '-', '*', '/', '^', '(', ')'];
 
-function circumflexToPow(s)
+function circumflexToPow(s) //don't judge me
 {
-    //console.log(s);
     for(let i = 0; i < s.length; i++)
         if(s[i] == '^')
         {
@@ -236,8 +252,8 @@ function circumflexToPow(s)
 
 function a_laguerre(_n_)
 {
-    //let a_laguerre_ = "e^(x)/((__n)!)*(d(e^(-x)*x^(__n), x, __n))"; //__n! weg?
-    let a_laguerre_ = "e^(x)*(d(e^(-x)*x^(_n_), x, _n_))";
+    //let a_laguerre_ = "e^(x)/((_n_)!)*(d(e^(-x)*x^(_n_), x, _n_))";
+    let a_laguerre_ = "e^(x)*(d(e^(-x)*x^(_n_), x, _n_))"; //_n_! is weggelaten, omdat de plot anders veel te klein wordt
     a_laguerre_ = a_laguerre_.replace(/_n_/g, _n_);
     a_laguerre_ = Algebrite.simplify(a_laguerre_).toString();
     console.log(a_laguerre_);
@@ -303,94 +319,87 @@ function sphericalHarmonics(l, m)
     return spherical;
 }
 
+function compileFunction(f){
+    f = f.replace(/exp/g, "Math.E^");
+    f = f.replace(/abs/g, "Math.abs");
+    
+    f = f.replace(/cos/g, "Math.cos");
+    f = f.replace(/sin/g, "Math.sin");
+    f = f.replace(/tan/g, "Math.tan");
+    
+    f = f.replace(/arcMath.cos/g, "Math.acos");
+    f = f.replace(/arcMath.sin/g, "Math.asin");
+    f = f.replace(/arcMath.tan/g, "Math.atan");
+    
+    f = f.split("arg(r)").join("((r < 0)? " + Math.PI + " : 0)");
+    f = f.split("arg(x)").join("((x < 0)? " + Math.PI + " : 0)");
+
+    f = f.split("r").join("(r)");
+    f = f.split("x").join("(Math.cos(θ))");
+    f = f.split("y").join("(φ)");
+    f = f.split("pi").join(Math.PI);
+    f = f.replace(/Math.e/g, "Math.E");
+    
+    f = circumflexToPow(f);
+    
+    return f;
+}
+
 function calcWaveFunction(n, l, m)
 {
+    if(complex && m == 0)
+        complex = false;
+    
     let total = "(" + radialWave(n, l) + ")*(" + sphericalHarmonics(l, m) + ")";
     total = total.replace("*-", "*(-1)*");
     total = Algebrite.simplify(total).toString();
     
     waveFunction = total.replace(/exp/g, "e^");
-    /*waveFunction = waveFunction.split("r").join("(r)");
-    waveFunction = waveFunction.split("x").join("(x)");
-    waveFunction = waveFunction.split("y").join("(y)");*/
     
     console.log(waveFunction);
-    let test = Algebrite.simplify("(" + waveFunction + ")" + "*(conj(" + waveFunction + "))").toString();
-    let a = Algebrite.simplify("(" + Algebrite.real(total).toString() + ")" + "^2").toString();
-    let b = Algebrite.simplify("(" + Algebrite.imag(total).toString() + ")" + "^2").toString();
-    
-    console.log(a);
-    console.log(b);
-    console.log(test);
-    
-    a = a.replace(/exp/g, "Math.E^");
-    a = a.replace(/abs/g, "Math.abs");
-    a = a.replace(/cos/g, "Math.cos");
-    a = a.split("arg(r)").join("((r < 0)? " + Math.PI + " : 0)");
-    a = a.split("arg(x)").join("((x < 0)? " + Math.PI + " : 0)");
-    
-    a = a.split("r").join("(r)");
-    a = a.split("x").join("(x)");
-    a = a.split("y").join("(y)");
-    a = a.split("pi").join(Math.PI);
+    if(complex)
+    {
+        let complex_wave = Algebrite.simplify("(" + waveFunction + ")" + "*(conj(" + waveFunction + "))").toString();
+        PDF = complex_wave;
         
-    /*b = b.replace(/exp/g, "Math.E^");
-    b = b.replace(/abs/g, "Math.abs");
-    b = b.replace(/sin/g, "Math.sin");
-    b = b.split("arg(r)").join("((r < 0)? " + Math.PI + " : 0)");
-    b = b.split("arg(x)").join("((x < 0)? " + Math.PI + " : 0)");
+        //let phase_eq = Algebrite.simplify(Algebrite.arctan(Algebrite.imag(waveFunction)/Algebrite.real(waveFunction))).toString();
+        let phase_eq = Algebrite.simplify(Algebrite.arg(waveFunction)).toString();
+        console.log(Algebrite.real(waveFunction).toString());
+        console.log(Algebrite.imag(waveFunction).toString());
+        console.log(phase_eq);
+        phase = compileFunction(phase_eq);
+        console.log(phase);
+    }
+    else
+    {
+        let real_wave = Algebrite.simplify("(" + Algebrite.real(total).toString() + ")" + "^2").toString();
+        PDF = real_wave;
+    }
     
-    b = b.split("r").join("(r)");
-    b = b.split("x").join("(x)");
-    b = b.split("y").join("(y)");
-    b = b.split("pi").join(Math.PI);*/
+    PDF = compileFunction(PDF);
     
-    a = circumflexToPow(a);
-    //b = circumflexToPow(b);
-    
-    a = "(" + a + ")";
-    //b = "(" + b + ")";
-    
-    test = test.replace(/exp/g, "Math.E^");
-    test = test.replace(/abs/g, "Math.abs");
-    test = test.replace(/sin/g, "Math.sin");
-    test = test.replace(/cos/g, "Math.cos");
-    test = test.split("arg(r)").join("((r < 0)? " + Math.PI + " : 0)");
-    test = test.split("arg(x)").join("((x < 0)? " + Math.PI + " : 0)");
-    
-    test = test.split("r").join("(r)");
-    test = test.split("x").join("(x)");
-    test = test.split("y").join("(y)");
-    test = test.split("pi").join(Math.PI);
-    
-    test = circumflexToPow(test);
-    
-    PDF = test;
-    //PDF = a;
     console.log(PDF);
-    PDF = PDF.replace(/Math.e/g, "Math.E");
 }
 
-function getPhase(r, theta, phi)
+function getAlpha(r, theta, phi)
 {
     let f = PDF;
     f = f.replace(/r/g, r);
-    f = f.replace(/x/g, Math.cos(theta));
-    f = f.replace(/y/g, phi);
-    /*f = f.split("*-").join("*(-1)*");
-    f = f.split("--").join("+");
-    f = f.split("+-").join("-");*/
-    //console.log(f);
-    //let g = Algebrite.simplify(f).toString();
-    //console.log(g);
-    //g = Algebrite.simplify("(" + g + ")*" + intensity).toString();
-    /*let a = Algebrite.imag(f);
-    let b = Algebrite.real(f);*/
-    //console.log(f);
-    let phase = eval(f);
-    //console.log(phase);
-    /*let phase = Algebrite.simplify("(" + f + ")" + "*conj(" + f + ")");*/
-    return phase;
+    f = f.replace(/θ/g, theta);
+    f = f.replace(/φ/g, phi);
+    
+    let g = 0;
+    
+    if(complex && m_g != 0)
+    {
+        g = phase;
+        g = g.replace(/r/g, r);
+        g = g.replace(/φ/g, phi);
+        g = g.replace(/θ/g, theta);
+    }
+    
+    let _alpha_ = [eval(f), eval(g)];
+    return _alpha_;
 }
 
 function calcOpacity(x, y, z)
@@ -398,17 +407,16 @@ function calcOpacity(x, y, z)
     let r = Math.sqrt(x*x+y*y+z*z);
     let theta = Math.acos(z/r);
     let phi = Math.atan(y/x) + Math.PI;
-    let phase = getPhase(r, theta, phi);
+    let _alpha_ = getAlpha(r, theta, phi);
     
-    //console.log(phase);
-    
-    return phase;
+    return _alpha_;
 }
 
 function createPoints()
 {
     let points = [];
     let alphas = [];
+    let colours_ = [];
     let fightthepowah;
     let i = MAX_POINTS;
     while(i)
@@ -423,8 +431,16 @@ function createPoints()
             points.push(z);
             
             let alpha = calcOpacity(x*scale, y*scale, z*scale);
-            alphas.push(alpha);
-            (alpha > brightest) && (brightest = eval(alpha));
+            alphas.push(alpha[0]);
+            let s = new THREE.Color();
+            let hue = (alpha[1])/Math.PI + 0.5;
+            //console.log(hue);
+            s.setHSL(hue, 1, 0.5);
+            
+            colours_.push(s.toArray()[0]);
+            colours_.push(s.toArray()[1]);
+            colours_.push(s.toArray()[2]);
+            (alpha[0] > brightest) && (brightest = eval(alpha[0]));
             i--;
         }
     }
@@ -432,7 +448,9 @@ function createPoints()
     vertices = new Float32Array(points);
     opacities = new Float32Array(alphas);
     intensities = new Float32Array(MAX_POINTS).fill(brightest);
-    console.log(brightest);
+    colours = new Float32Array(colours_);
+    //console.log(opacities);
+    //console.log(brightest);
 }
 
 var textMesh = [];
@@ -525,8 +543,7 @@ function updateAxes() {
     }
 }
 
-function init() {
-    let container = document.getElementById("renderer");
+function setupScene() {
 	camera = new THREE.PerspectiveCamera( 45, container.clientWidth / container.clientHeight, 0.01, 150 );
     camera.up.set( 0, 0, 1 );
 	camera.position.x = 1.3;
@@ -534,23 +551,27 @@ function init() {
 	camera.position.z = 1.3;
 	scene = new THREE.Scene();
     scene.background = null;
-    
     setAxes();
-    
+}
+
+function calcPoints() {
     calcWaveFunction(n_g, l_g, m_g);
-    
-	geometry = new THREE.BufferGeometry();
-    
     createPoints();
+}
+
+function createGeometry() {
+    geometry = new THREE.BufferGeometry();
     
     geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.addAttribute( 'c_color', new THREE.BufferAttribute( colours, 3 ) );
     geometry.addAttribute('alpha', new THREE.BufferAttribute(opacities,1));
     geometry.addAttribute('max', new THREE.BufferAttribute(intensities,1));
+    //console.log(colours);
     
-    contrast_ = new Float32Array(MAX_POINTS).fill(contrast);
+    let contrast_ = new Float32Array(MAX_POINTS).fill(contrast);
     geometry.addAttribute('contrast', new THREE.BufferAttribute(contrast_,1));
     
-    sizes = new Float32Array(MAX_POINTS).fill(size);
+    let sizes = new Float32Array(MAX_POINTS).fill(size);
     geometry.addAttribute('size', new THREE.BufferAttribute(sizes,1));
     
     let di_molto = new Float32Array(MAX_POINTS).fill(brightness);
@@ -558,92 +579,64 @@ function init() {
     
     let dummy = new Float32Array(MAX_POINTS).fill(0);
     geometry.addAttribute('n_alpha', new THREE.BufferAttribute(dummy,1));
+}
+
+function createMaterial() {
     
     let uniforms =
     {
-        color: { value: new THREE.Color( 0xffffff ) },
-        color2: { value: new THREE.Color( 0xFF0000 ) }
+        color1: { value: new THREE.Color( 0xffffff ) },
+        color2: { value: new THREE.Color( 0xFF0000 ) },
+        complex: {
+            value: (complex?true:false)
+        }
     };
+    
 	material = new THREE.ShaderMaterial(
         {
-            depthWrite: false,
+            //depthWrite: false,
+            vertexColors: THREE.VertexColors,
             uniforms: uniforms,
             //blending: THREE.AdditiveBlending,
             transparent: true,
             vertexShader:   document.getElementById( 'vertexshader' ).textContent,
             fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
         });
+}
+
+function createOrbital() {
+    calcPoints();
+    createGeometry();
+    createMaterial();
     
     orbitals = new THREE.Points(geometry,material);
 	scene.add(orbitals);
     
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
-    renderer.sortObjects = false;
-    controls = new THREE.OrbitControls( camera, renderer.domElement );
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize( container.clientWidth, container.clientHeight );
-	container.appendChild( renderer.domElement );
-    updateOrbitals = false;
     var bright = orbitals.geometry.attributes.brightness;
     bright.dynamic = true;
 }
 
+function setupRenderer() {
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.sortObjects = false;
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize( container.clientWidth, container.clientHeight );
+	container.appendChild( renderer.domElement );
+    
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+}
+
+function init() {
+    container = document.getElementById("renderer");
+    
+    setupScene();
+    createOrbital();
+    setupRenderer();
+}
+
 function updateAmount(){
     scene.remove(orbitals);
-    
-    createPoints();
-    
-    geometry = new THREE.BufferGeometry();
-    
-    geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-    geometry.addAttribute('alpha', new THREE.BufferAttribute(opacities,1));
-    geometry.addAttribute('max', new THREE.BufferAttribute(intensities,1));
-    
-    sizes = new Float32Array(MAX_POINTS).fill(size);
-    geometry.addAttribute('size', new THREE.BufferAttribute(sizes,1));
-    
-    let di_molto = new Float32Array(MAX_POINTS).fill(brightness);
-    geometry.addAttribute('brightness', new THREE.BufferAttribute(di_molto,1));
-    
-    let renaissance = new Float32Array(MAX_POINTS).fill(contrast);
-    geometry.addAttribute('contrast', new THREE.BufferAttribute(renaissance,1));
-    
-    let dummy = new Float32Array(MAX_POINTS).fill(0);
-    geometry.addAttribute('n_alpha', new THREE.BufferAttribute(dummy,1));
-    
-    let uniforms =
-    {
-        color: { value: new THREE.Color( 0xffffff ) },
-        color2: { value: new THREE.Color( 0xFF0000 ) }
-    };
-	material = new THREE.ShaderMaterial(
-        {
-            depthWrite: false,
-            uniforms: uniforms,
-            blending: THREE.AdditiveBlending,
-            transparent: true,
-            vertexShader:   document.getElementById( 'vertexshader' ).textContent,
-            fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-        });
-    
-    orbitals = new THREE.Points(geometry,material);
-	scene.add(orbitals);
-    
-    var attributes = orbitals.geometry.attributes;
-    
-    for(let i = 0; i < MAX_POINTS; i++)
-    {
-        attributes.position.array[i] = vertices[i];
-        /*attributes.position.array[i].y = vertices[i*3+1];
-        attributes.position.array[i].z = vertices[i*3+2];*/
-        attributes.alpha.array[i] = opacities[i];    
-    }
-    attributes.max.array.fill(brightest);
-    
-    attributes.position.needsUpdate = true;
-    attributes.alpha.needsUpdate = true;
-    attributes.alpha.needsUpdate = true;
-    attributes.max.needsUpdate = true;
+    createOrbital();
 }
 
 function updatePoints(){
@@ -652,10 +645,18 @@ function updatePoints(){
         let x = orbitals.geometry.attributes.position.array[3*i];
         let y = orbitals.geometry.attributes.position.array[3*i+1];
         let z = orbitals.geometry.attributes.position.array[3*i+2];
-        //alphas.array[i] = calcOpacity(x*scale, y*scale, z*scale);
-        orbitals.geometry.attributes.alpha.array[i] = calcOpacity(x*scale, y*scale, z*scale);
+        
+        orbitals.geometry.attributes.alpha.array[i] = calcOpacity(x*scale, y*scale, z*scale)[0];
         orbitals.geometry.attributes.alpha.needsUpdate = true;
     }
+}
+
+function updateComplex(){
+    calcWaveFunction(n_g, l_g, m_g);
+    orbitals.material.uniforms.complex.value = complex;
+    orbitals.material.uniforms.complex.needsUpdate = true;
+    
+    updatePoints();
 }
 
 function updateAlpha()
@@ -671,28 +672,80 @@ function updateAlpha()
     orbitals.geometry.attributes.n_alpha.needsUpdate = true;
 }
 
+function sortPoints(mesh) {
+
+    var vector = new THREE.Vector3();
+
+    // Model View Projection matrix
+
+    var matrix = new THREE.Matrix4();
+    matrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+    matrix.multiply( mesh.matrixWorld );
+
+    //
+
+    var geometry = mesh.geometry;
+
+    var index = geometry.getIndex();
+    var positions = geometry.getAttribute( 'position' ).array;
+    var length = positions.length / 3;
+
+    if ( index === null ) {
+
+        var array = new Uint16Array( length );
+
+        for ( var i = 0; i < length; i ++ ) {
+
+            array[ i ] = i;
+
+        }
+
+        index = new THREE.BufferAttribute( array, 1 );
+
+        geometry.setIndex( index );
+
+    }
+
+    var sortArray = [];
+
+    for ( var i = 0; i < length; i ++ ) {
+
+        vector.fromArray( positions, i * 3 );
+        vector.applyMatrix4( matrix );
+
+        sortArray.push( [ vector.z, i ] );
+
+    }
+
+    function numericalSort( a, b ) {
+
+        return b[ 0 ] - a[ 0 ];
+
+    }
+
+    sortArray.sort( numericalSort );
+
+    var indices = index.array;
+
+    for ( var i = 0; i < length; i ++ ) {
+
+        indices[ i ] = sortArray[ i ][ 1 ];
+
+    }
+
+    geometry.index.needsUpdate = true;
+
+}
+
 function animate()
 {
 	requestAnimationFrame( animate );
     
     updateAlpha();
     updateAxes();
-    //var brightness_ = orbitals.geometry.attributes.brightness;
-    /*var bright = orbitals.geometry.attributes.brightness;
-    bright.needsUpdate = true;*/
+    
     orbitals.material.needsUpdate = true;
-    if(updateOrbitals)
-    {
-        calcWaveFunction(n_g, l_g, m_g);
-        updatePoints();
-        updateOrbitals = false;
-    }
-    
-	/*orbitals.rotation.x += 0.001;
-	orbitals.rotation.y += 0.002;*/
-    
-    //var alphas = orbitals.geometry.attributes.opacity;
-    //alphas.needsUpdate = true;
+    sortPoints(orbitals);
     
 	renderer.render( scene, camera );
     controls.update();
