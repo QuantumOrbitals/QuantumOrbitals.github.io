@@ -88,7 +88,7 @@ body {
     position: relative;
     text-align: center;
     font-size: 2.5vmin;
-    top: 100%;
+    top: 80%;
     left: 40%;
     width: 20%;
     transition: opacity .2s;
