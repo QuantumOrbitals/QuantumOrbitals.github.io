@@ -1,7 +1,5 @@
-//import Algebrite as algebrite from "algebrite.js";
-import * as algebrite from '/algebrite.js';
+import * as algebrite from '/algebrite.js'; //type="module"
 import * as OrbitControls from '/OrbitControls.js';
-//import * as math from '/math.min.js';
 
 var container, camera, scene, renderer, controls;
 var geometry, material, mesh;
@@ -594,13 +592,13 @@ function createMaterial() {
     
 	material = new THREE.ShaderMaterial(
         {
-            //depthWrite: false,
+            depthWrite: false,
             vertexColors: THREE.VertexColors,
             uniforms: uniforms,
             //blending: THREE.AdditiveBlending,
-            transparent: true,
             vertexShader:   document.getElementById( 'vertexshader' ).textContent,
             fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+            transparent: true
         });
 }
 
